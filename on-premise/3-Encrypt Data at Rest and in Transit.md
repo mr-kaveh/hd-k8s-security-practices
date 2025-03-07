@@ -11,21 +11,26 @@
 		
 example Secret store:
 
-		apiVersion: external-secrets.io/v1beta1
-		kind: SecretStore
-		metadata:
-		  name: aws-secret-store
-		  namespace: default
-		spec:
-		  provider:
-		    aws:
-		      service: SecretsManager
-		      region: us-east-1
-		      auth:
-		        secretRef:
-		          accessKeyIDSecretRef:
-		            name: aws-credentials
-		            key: access-key
-		          secretAccessKeySecretRef:
-		            name: aws-credentials
-		            key: secret-access-key
+	apiVersion: external-secrets.io/v1beta1
+	kind: SecretStore
+	metadata:
+	  name: aws-secret-store
+	  namespace: default
+	spec:
+	  provider:
+	    aws:
+	      service: SecretsManager
+	      region: us-east-1
+	      auth:
+	        secretRef:
+	          accessKeyIDSecretRef:
+	            name: aws-credentials
+	            key: access-key
+	          secretAccessKeySecretRef:
+	            name: aws-credentials
+	            key: secret-access-key
+
+
+
+ 
+
