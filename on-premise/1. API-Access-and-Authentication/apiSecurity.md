@@ -13,4 +13,4 @@
 		  resources: ["pods"]
 		  verbs: ["get", "list", "create"]
 
-- Integrate with an Identity Provider (OIDC, LDAP, or Active Directory)
+- Integrate with an Identity Provider (OIDC, LDAP, or Active Directory) 
