@@ -87,3 +87,6 @@ Binding Role to a Developer Group:
 ##### 2.Integrate LDAP with Kubernetes Authentication
 Kubernetes does not natively support LDAP, so you'll need an intermediary authentication mechanism, which i am gonna use OpenID Connect(OIDC) 
 
+	User -> LDAP (via Identity Provider) -> OIDC Tokens -> Kubernetes API Server
+
+
