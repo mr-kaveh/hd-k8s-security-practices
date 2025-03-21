@@ -89,4 +89,61 @@ Kubernetes does not natively support LDAP, so you'll need an intermediary authen
 
 	User -> LDAP (via Identity Provider) -> OIDC Tokens -> Kubernetes API Server
 
+ ##### Step 1: Set Up Identity Provider (e.g., Keycloak or Dex)
+-   Deploy **Dex** in your cluster or externally.
+-   Configure Dex to use LDAP:
+
+		connectors:
+		- type: ldap
+		  id: ldap
+		  name: LDAP
+		  config:
+		    host: ldap.dirserver.com:389
+		    insecureNoSSL: true
+		    bindDN: uid=admin,dc=dirserver,dc=com
+		    bindPW: admin-password
+		    userSearch:
+		      baseDN: ou=Users,dc=dirserver,dc=com
+		      filter: "(objectClass=person)"
+		      username: uid
+		      idAttr: uid
+		      emailAttr: mail
+		      nameAttr: cn
+		    groupSearch:
+		      baseDN: ou=Groups,dc=dirserver,dc=com
+		      filter: "(objectClass=groupOfNames)"
+		      userMatchers:
+		        - userAttr: DN
+		          groupAttr: member
+		      nameAttr: cn
+
+##### Step 2: Configure Kubernetes API Server for OIDC
+	--oidc-issuer-url=https://dex.ouroidc.com/realms/token-universe
+	--oidc-client-id=kubernetes
+	--oidc-username-claim=email
+	--oidc-groups-claim=groups
+	--oidc-ca-file=/etc/kubernetes/pki/ca.crt
+
+##### Step 3: Get OIDC Tokens for kubectl
+
+We use **kubectl plugin** or tools like `kubelogin`, `kube-oidc-proxy`, or `dex-k8s-authenticator` for browser-based login.
+
+Example config snippet for `~/.kube/config`:
+
+	users:
+	- name: oidc-user
+	  user:
+	    auth-provider:
+	      name: oidc
+	      config:
+	        idp-issuer-url: https://dex.ouroidc.com/realms/token-universe
+	        client-id: kubernetes
+	        client-secret: hd-client-secret
+	        id-token: hd-id-token
+	        refresh-token: hd-refresh-token
+
+
+
+
+
 
