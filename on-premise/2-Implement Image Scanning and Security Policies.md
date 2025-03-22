@@ -1,32 +1,24 @@
-
-### **1. Trusted Base Images**
+### **1. Use Trusted Base Images**
 
 -   We should Always start with a base image from a trusted source, such as official repositories or verified registries like Docker Hub or Red Hat Container Catalog.
     
 -   We prefer minimal base images like Alpine or Distroless to reduce the attack surface.
 
-		# Use a minimal and trusted base image like Alpine
-		FROM alpine:3.18
+		# Use a minimal and trusted base image like Alpine 		FROM alpine:3.18
 
-		# Add only necessary files and packages
-		RUN apk add --no-cache python3
-		COPY app.py /app/
+		# Add only necessary files and packages 		RUN apk add --no-cache python3 		COPY app.py /app/
 
 		CMD ["python3", "/app/app.py"]
 
 ##### Note: We may use `FROM scratch` for extremely minimal images if your application doesn’t require a full OS. scratch base images are suitable for *Security-first*  deployments, since there are no unnecessary files, libraries, or tools that could introduce vulnerabilities.
 
-	# Start from scratch
-	FROM scratch
+	# Start from scratch 	FROM scratch
 
-	# Set up working directory
-	WORKDIR /app
+	# Set up working directory 	WORKDIR /app
 
-	# Copy Go binary into the image
-	COPY ./data-wrangler /app/data-wrangler
+	# Copy Go binary into the image 	COPY ./data-wrangler /app/data-wrangler
 
-	# Specify the application to run
-	ENTRYPOINT ["/app/data-wrangler"]
+	# Specify the application to run 	ENTRYPOINT ["/app/data-wrangler"]
 
     
 
@@ -85,25 +77,46 @@
 		  only:
 		    - if: $TRIVY_EXIT_CODE == "0"
 
--   Enforce Kubernetes **Admission Controllers** (Gatekeeper, Kyverno) to block risky deployments.
-Example Kyverno policy (Deny privileged containers):
 
-		apiVersion: kyverno.io/v1
+### **3. Choosing the Right Image**
+
+-   We use **official or LTS images** for production environments to ensure regular updates and better security.
+    
+-   For experimental or cutting-edge projects, you can explore **rolling or community-contributed images**.
+    
+-   Enterprises may opt for **enterprise-grade images** to meet compliance and support requirements.
+    
+
+### **4. Sign and Verify Images**
+
+a.   Use image signing tools like Docker Content Trust (DCT) or Notary to ensure the integrity of your images:
+
+		export DOCKER_CONTENT_TRUST=1
+		docker push hd-image-registry/hd-image:v1.1.22
+		
+	*This command signs the image when pushing to your registry.*	
+
+ b. Enable Admission Controller for Image Validation with Kyverno:
+  - Installation of Kyverno:
+  
+  		kubectl create -f https://github.com/kyverno/kyverno/releases/download/v1.11.1/install.yaml
+ - We then need to create the ClusterPolicy to enforce:
+ 
+    	apiVersion: kyverno.io/v1
 		kind: ClusterPolicy
 		metadata:
-		  name: deny-privileged-containers
+		  name: require-signed-images
 		spec:
-		  validationFailureAction: Enforce
+		  validationFailureAction: enforce
 		  rules:
-		  - name: validate-privileged
-		    match:
-		      resources:
-		        kinds:
-		        - Pod
-		    validate:
-		      message: "Privileged mode is not allowed."
-		      pattern:
-		        spec:
-		          containers:
-		          - securityContext:
-		              privileged: "false"
+		    - name: validate-signatures
+		      match:
+		        resources:
+		          kinds:
+		            - Pod
+		      validate:
+		        message: "Images must be signed."
+		        pattern:
+		          spec:
+		            containers:
+		              - image: "*@sha256:*"
