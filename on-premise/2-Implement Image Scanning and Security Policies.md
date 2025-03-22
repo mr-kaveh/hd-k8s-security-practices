@@ -4,9 +4,12 @@
     
 -   We prefer minimal base images like Alpine or Distroless to reduce the attack surface.
 
-		# Use a minimal and trusted base image like Alpine 		FROM alpine:3.18
+		# Use a minimal and trusted base image like Alpine 		
+		FROM alpine:3.18
 
-		# Add only necessary files and packages 		RUN apk add --no-cache python3 		COPY app.py /app/
+		# Add only necessary files and packages 		
+		RUN apk add --no-cache python3 		
+		COPY app.py /app/
 
 		CMD ["python3", "/app/app.py"]
 
@@ -94,7 +97,8 @@ a.   Use image signing tools like Docker Content Trust (DCT) or Notary to ensure
 		export DOCKER_CONTENT_TRUST=1
 		docker push hd-image-registry/hd-image:v1.1.22
 		
-	*This command signs the image when pushing to your registry.*	
+	
+*This command signs the image when pushing to your registry.*	
 
  b. Enable Admission Controller for Image Validation with Kyverno:
   - Installation of Kyverno:
