@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy source code and build it
 COPY hd-main.go .
-RUN go build -o app main.go
+RUN go build -o app hd-main.go
 
 
 ## STAGE 2 : runner
