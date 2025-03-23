@@ -1,0 +1,19 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-signed-images
+spec:
+  validationFailureAction: enforce
+  background: false
+  rules:
+    - name: validate-image-signatures
+      match:
+        resources:
+          kinds:
+            - Pod
+      validate:
+        message: "Images must be signed and use a content digest (e.g., @sha256:<digest>)."
+        pattern:
+          spec:
+            containers:
+              - image: "*@sha256:*"
