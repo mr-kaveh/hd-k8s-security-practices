@@ -10,7 +10,7 @@
 In case there is a problem with signing the image while pushing like the following error:
 ###### couldn't add target to targets: could not find necessary signing keys
 
-then use cosign to sign the image again and then push to Docker Hub
+then use cosign to resign the image again and then push to Docker Hub
 
 	cosign sign docker.io/mrdavoodi/go-image:v1
 	

@@ -124,3 +124,70 @@ a.   Use image signing tools like Docker Content Trust (DCT) or Notary to ensure
 		          spec:
 		            containers:
 		              - image: "*@sha256:*"
+
+see the full example on how to test and verify it here:
+https://github.com/mr-kaveh/hd-k8s-security-practices/tree/master/kyverno-hd-example
+
+### **5. Avoid Running Containers as Root**
+
+This is to avoid **Privilege escalation attacks**.
+
+**Details:**
+
+-   Explicitly create a non-root user in the Dockerfile.    
+-   Limit the container’s capabilities.
+    
+**Example: Dockerfile**
+
+	FROM python:3.9.21
+
+	# Create a non-root user and switch to it
+	RUN useradd -m aiuser
+	USER aiuser
+
+	COPY . /home/aiuser/app
+	WORKDIR /home/aiuser/app
+	CMD ["python", "ml-modeler.py"]
+It is also a good practice to define **Pod Security Context**:
+	
+	apiVersion: v1
+	kind: Pod
+	metadata:
+	  name: secure-pod
+	spec:
+	  containers:
+	    - name: secure-container
+	      image: my-app:latest
+	      securityContext:
+	        runAsNonRoot: true
+	        runAsUser: 1000
+
+
+### **6. Use Multi-Stage Builds**
+
+Multi-stage builds reduce image size by separating build and runtime dependencies:
+
+	FROM ubuntu:18.04 AS compile-image
+	RUN apt-get update
+	RUN apt-get install -y --no-install-recommends gcc build-essential
+
+	# Create a non-root user and switch to it
+	RUN useradd -m appuser
+	USER appuser
+
+
+	WORKDIR /home/appuser
+	COPY hello.c .
+	RUN gcc -o helloworld hello.c
+
+
+	# This is the second and final image; it copies the compiled binary
+	# over but starts from the base ubuntu:18.04 image.
+	FROM ubuntu:18.04 AS runtime-image
+
+
+	COPY --from=compile-image /home/appuser/helloworld .
+	CMD ["./helloworld"]
+
+I have a full article on Multistage build here:
+https://www.linkedin.com/pulse/docker-multi-stage-builds-smaller-images-faster-hossein-davoodi/?trackingId=9NEG%2BaP5TMWDiRSKrteW0Q%3D%3D
