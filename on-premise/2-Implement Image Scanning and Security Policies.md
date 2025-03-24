@@ -190,4 +190,106 @@ Multi-stage builds reduce image size by separating build and runtime dependencie
 	CMD ["./helloworld"]
 
 I have a full article on Multistage build here:
-https://www.linkedin.com/pulse/docker-multi-stage-builds-smaller-images-faster-hossein-davoodi/?trackingId=9NEG%2BaP5TMWDiRSKrteW0Q%3D%3D
+https://www.linkedin.com/pulse/docker-multi-stage-builds-smaller-images-faster-hossein-davoodi
+
+### **7. Daemonless Docker Build**
+
+
+### **Kaniko**
+
+Kaniko is an open-source tool designed to build container images inside a container or Kubernetes pod without requiring privileged access or a Docker daemon.
+
+**Key Features:**
+
+-   Builds images directly from a Dockerfile.
+    
+-   Runs in unprivileged containers, making it secure for multi-tenant environments.
+    
+-   Supports pushing images to container registries like **Docker Hub, Amazon ECR, or Google Container Registry**
+    
+
+**How It Works:**
+
+1.  Kaniko uses a container image (`gcr.io/kaniko-project/executor`) to execute builds.
+    
+2.  It reads the Dockerfile and builds the image layer by layer.
+    
+3.  The built image is pushed to a specified container registry.
+    
+
+**Example: Kaniko in Kubernetes** Here’s how you can use Kaniko to build an image in a Kubernetes cluster:
+
+1.  Create a Kubernetes secret for Docker registry credentials:
+    
+       ```
+    kubectl create secret docker-registry regcred \
+      --docker-server=<registry-url> \
+      --docker-username=<username> \
+      --docker-password=<password> \
+      --docker-email=<email>
+    
+    ```
+    
+2.  Deploy a Kaniko pod:
+    
+     ```
+    apiVersion: v1
+    kind: Pod
+    metadata:
+      name: kaniko
+    spec:
+      containers:
+        - name: kaniko
+          image: gcr.io/kaniko-project/executor:latest
+          args:
+            - "--dockerfile=/workspace/Dockerfile"
+            - "--context=dir://workspace/"
+            - "--destination=<registry-url>/<image-name>:<tag>"
+          volumeMounts:
+            - name: kaniko-secret
+              mountPath: /kaniko/.docker
+      volumes:
+        - name: kaniko-secret
+          secret:
+            secretName: regcred
+    ```
+
+### **Pipeline Example: GitLab CI/CD**
+
+Here’s how you can use Kaniko in a GitLab CI/CD pipeline.
+
+#### **1. Define** `.gitlab-ci.yml`
+
+Create a `.gitlab-ci.yml` file for your pipeline:
+
+yaml
+
+```
+stages:
+  - build
+
+build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:latest
+    entrypoint: [""]
+  script:
+    - echo '{"auths":{"<registry-url>":{"username":"<username>","password":"<password>"}}}' > /kaniko/.docker/config.json
+    - /kaniko/executor \
+        --dockerfile=/builds/$CI_PROJECT_PATH/Dockerfile \
+        --context=dir:///builds/$CI_PROJECT_PATH/ \
+        --destination=<registry-url>/<image-name>:${CI_COMMIT_SHORT_SHA}
+
+```
+
+#### **2. Variables and Registry Authentication**
+
+Replace `<registry-url>`, `<username>`, and `<password>` with your registry details. Alternatively, use GitLab CI/CD environment variables to securely store these credentials.
+
+#### **3. Push Your Code**
+
+When you push your code to GitLab, the CI/CD pipeline will:
+
+1.  Build the image using the `Dockerfile`.    
+2.  Push the image to the configured registry.
+
