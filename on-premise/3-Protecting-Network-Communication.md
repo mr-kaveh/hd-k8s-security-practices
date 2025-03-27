@@ -77,3 +77,48 @@ Now let's look at another example, where the **backend** pods are the target for
 	    ports:
 	    - protocol: TCP
 	      port: 5432
+
+We can also write more complex policies to even restrict IP Blocks and namespaces:
+
+	apiVersion: networking.k8s.io/v1
+	kind: NetworkPolicy
+	metadata:
+	  name: secure-backend-policy-with-ipblock
+	  namespace: default
+	spec:
+	  podSelector:
+	    matchLabels:
+	      app: backend
+	  policyTypes:
+	  - Ingress
+	  - Egress
+	  ingress:
+	  - from:
+	    - podSelector:
+	        matchLabels:
+	          app: frontend
+	      namespaceSelector:
+	        matchLabels:
+	          team: frontend-team
+	    - ipBlock:
+	        cidr: 192.168.0.0/16
+	        except:
+	        - 192.168.1.0/24
+	    ports:
+	    - protocol: TCP
+	      port: 80
+	  egress:
+	  - to:
+	    - podSelector:
+	        matchLabels:
+	          app: database
+	      namespaceSelector:
+	        matchLabels:
+	          team: database-team
+	    - ipBlock:
+	        cidr: 10.0.0.0/8
+	        except:
+	        - 10.1.0.0/16
+	    ports:
+	    - protocol: TCP
+	      port: 5432
