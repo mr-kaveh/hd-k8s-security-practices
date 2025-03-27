@@ -122,3 +122,53 @@ We can also write more complex policies to even restrict IP Blocks and namespace
 	    ports:
 	    - protocol: TCP
 	      port: 5432
+
+### 2. **TLS for API Communication**
+### Key Components of TLS in Kubernetes
+
+1.  **Certificates**:
+    
+    -   TLS relies on X.509 certificates to establish trust between the API server and its clients.        
+    -   Certificates are issued by a trusted Certificate Authority (CA).
+        
+2.  **Encryption**:
+    
+    -   TLS encrypts data in transit, preventing unauthorized access or tampering.
+        
+3.  **Authentication**:
+    
+    -   Clients (e.g., `kubectl`) authenticate themselves to the API server using certificates.        
+    -   The API server also authenticates itself to clients.
+
+### Steps to Enable TLS for API Communication
+
+ - **Generate Certificates**:
+ -   Create a CA certificate and private key:
+
+		openssl req -x509 -newkey rsa:4096 -keyout ca.key -out ca.crt -days 365 -nodes
+		
+ - Generate the API server's certificate and key:
+
+		openssl req -newkey rsa:4096 -keyout apiserver.key -out apiserver.csr -nodes
+		openssl x509 -req -in apiserver.csr -CA ca.crt -CAkey ca.key -CAcreat
+
+ - **Configure the API Server**:
+ - Update the `kube-apiserver` configuration to use the generated certificates:
+ 
+		kube-apiserver \
+		  --tls-cert-file=/path/to/apiserver.crt \
+		  --tls-private-key-file=/path/to/apiserver.key \
+		  --client-ca-file=/path/to/ca.crt
+- **Distribute Certificates**:
+    
+    -   Provide the CA certificate to all clients (e.g., `kubectl`, kubelets) so they can verify the API server's identity.
+        
+-   **Enable Mutual TLS (mTLS)**:
+  
+    -   Configure clients to present their own certificates for authentication. For example, generate a client certificate and key:
+
+			openssl req -newkey rsa:4096 -keyout client.key -out client.csr -nodes
+			openssl x509 -req -in client.csr -CA ca.crt -CAkey ca.key -CAcreateserial -out client.crt -days 365
+	- Use the client certificate and key when accessing the API server:
+		
+			kubectl --client-certificate=/path/to/client.crt --client-key=/path/to/client.key
