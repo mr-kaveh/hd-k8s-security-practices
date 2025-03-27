@@ -42,10 +42,7 @@ def install_k9s():
     """
     print("Installing k9s...")
     # Download the latest k9s release from GitHub and extract it
-    run_command("curl -s https://api.github.com/repos/derailed/k9s/releases/latest | grep 'browser_download_url.*Linux_x86_64.tar.gz' | cut -d '\"' -f 4 | wget -qi -")
-    run_command("tar -xvf k9s_Linux_x86_64.tar.gz")
-    # Move the k9s binary to a directory in the system's PATH
-    run_command("sudo mv k9s /usr/local/bin/")
+    run_command("wget https://github.com/derailed/k9s/releases/latest/download/k9s_linux_amd64.deb && apt install ./k9s_linux_amd64.deb && rm k9s_linux_amd64.deb")
     print("k9s has been installed successfully!")
 
 def add_autocompletion():
