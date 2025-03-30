@@ -67,10 +67,6 @@ Update their manifests to use TLS:
 	    - --tls-cert-file=/etc/kubernetes/pki/scheduler.crt
 	    - --tls-private-key-file=/etc/kubernetes/pki/scheduler.key
 
--   **Use etcd encryption:** Ensure sensitive data in `etcd` is encrypted:
-
-		kubectl get secrets -n kube-system
-
 - Use The **External Secrets Operator (ESO)**
 		
 		helm repo add external-secrets https://charts.external-secrets.io
