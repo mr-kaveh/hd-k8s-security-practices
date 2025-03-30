@@ -1,12 +1,12 @@
 
--   **Enable TLS for all intra-cluster communication** (use cert-manager).
-## 1. Verify Current TLS Configuration
+## Enable TLS for all intra-cluster communication(use cert-manager)
+### 1. Verify Current TLS Configuration
 
 First, check your current TLS setup:
 
 	kubectl get --raw / | jq '.paths[] | select(contains("certs"))'
 
-## 2. Enable TLS for API Server
+### 2. Enable TLS for API Server
 
 Update your API server configuration (usually in  `/etc/kubernetes/manifests/kube-apiserver.yaml`):
 
@@ -20,7 +20,7 @@ Update your API server configuration (usually in  `/etc/kubernetes/manifests/kub
 	    - --kubelet-client-certificate=/etc/kubernetes/pki/apiserver-kubelet-client.crt
 	    - --kubelet-client-key=/etc/kubernetes/pki/apiserver-kubelet-client.key
 
-## 3. Configure kubelet TLS
+### 3. Configure kubelet TLS
 
 On each node, edit  `/var/lib/kubelet/config.yaml`:
 
@@ -29,7 +29,7 @@ On each node, edit  `/var/lib/kubelet/config.yaml`:
 	tlsPrivateKeyFile: /var/lib/kubelet/pki/kubelet.key
 	clientCAFile: /etc/kubernetes/pki/ca.crt
 
-## 4. Enable TLS for etcd
+### 4. Enable TLS for etcd
 
 Edit your etcd configuration (typically  `/etc/kubernetes/manifests/etcd.yaml`):
 
@@ -46,7 +46,7 @@ Edit your etcd configuration (typically  `/etc/kubernetes/manifests/etcd.yaml`):
 	    - --peer-client-cert-auth=true
 	    - --peer-trusted-ca-file=/etc/kubernetes/pki/etcd/ca.crt
 
-## 5. Configure Controller Manager and Scheduler
+### 5. Configure Controller Manager and Scheduler
 
 Update their manifests to use TLS:
 
