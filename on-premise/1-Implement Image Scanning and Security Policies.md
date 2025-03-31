@@ -45,7 +45,7 @@
 
 		trivy-scan:
 		  stage: scan
-		  image: aquasec/trivy:latest
+		  image: bitnami/trivy:latest
 		  variables:
 		    DOCKER_HOST: tcp://docker:2376
 		    DOCKER_TLS_CERTDIR: "/certs"
