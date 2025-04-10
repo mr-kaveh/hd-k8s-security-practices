@@ -80,3 +80,23 @@ this image is not signed , by try to apply this deployment, you will get error, 
 	      containers:
 	        - name: signed-container
 	          image: <your-registry>/<username>/your-image@sha256:<digest>
+
+
+### **Kyverno + Cosign Example**
+	apiVersion: kyverno.io/v1
+	kind: ClusterPolicy
+	metadata:
+	  name: verify-signed-images
+	spec:
+	  validationFailureAction: Enforce
+	  rules:
+	  - name: verify-image-signature
+	    match:
+	      resources:
+	        kinds:
+	        - Pod
+	    verifyImages:
+	    - imageReferences:
+	      - "ghcr.io/example/image:*"
+	      type: Cosign
+	      key: "https://fulcio.sigstore.dev"
